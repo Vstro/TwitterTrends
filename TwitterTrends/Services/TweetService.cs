@@ -6,7 +6,7 @@ namespace TwitterTrends.Services
 {
     public static class TweetService
     {
-        private const string tweetsFileName = "snow_tweets2014.txt";
+        private const string tweetsFileName = "weekend_tweets2014.txt";
         private const string sentimentsFileName = "sentiments.csv";
 
         public static Dictionary<string, double> GetSentiments()

@@ -8,7 +8,8 @@ namespace TwitterTrends.Entities
     public class StateDrawModel
     {
         public PointF[][] Polygons { get; set; }
-        public Coordinates InnerPoint { get; set; }
-        public string Code { get; set; }
+        public PointF InnerPoint { get; set; }
+        public string Name { get; set; }
+        public Color Color { get; set; }
     }
 }

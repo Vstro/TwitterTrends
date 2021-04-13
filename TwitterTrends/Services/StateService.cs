@@ -4,15 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using TwitterTrends.Entities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace TwitterTrends.Services
 {
     public static class StateService
     {
         private const string STATES_FILE_NAME = "states.json";
-        public const double ALL_NEUTRAL_TWEETS = -100;
 
         public static Dictionary<string, double> CalculateAverageSentiments()
         {
@@ -24,36 +21,53 @@ namespace TwitterTrends.Services
                 {
                     continue;
                 }
-                int zeroCounter = 0;
+                //int zeroCounter = 0;
                 stateFeelings[stateTweets.Key] = stateTweets.Value.Select(tw => {
                     if (tw.Feeling.HasValue) return tw.Feeling.Value;
-                    zeroCounter++;
+                    //zeroCounter++;
                     return 0;
-                }).Sum() / (stateTweets.Value.Count - zeroCounter);
+                }).Sum() / (stateTweets.Value.Count /*- zeroCounter*/);
             }
             return stateFeelings;
         }
 
-        public static Dictionary<string, double[][][][]> GetStatesCoordinates()
+        public static Dictionary<string, Coordinates[][]> GetStatesCoordinates()
         {
             using var states = new StreamReader(new FileStream(STATES_FILE_NAME, FileMode.Open));
-            JObject jObject = JObject.Parse(states.ReadToEnd());
-            var coordinates = new Dictionary<string, double[][][][]>();
-            foreach (var pair in jObject.ToObject<Dictionary<string, JArray>>())
+            string jsonStates = states.ReadToEnd();
+            var namedCoordinates = new Dictionary<string, Coordinates[][]>();
+            int nameStart = jsonStates.IndexOf('\"');
+            while (nameStart != -1)
             {
-                try
+                string stateName = jsonStates.Substring(nameStart + 1, 2);
+                int coordsStart = jsonStates.IndexOf("[[[");
+                int coordsEnd;
+                // if state consists of few polygons
+                if (jsonStates[coordsStart + 3] == '[')
                 {
-                    // if state consists of only one polygon
-                    var value = new double[][][][] { pair.Value.ToObject<double[][][]>() };
-                    coordinates.Add(pair.Key, value);
+                    var polygon = new List<Coordinates[]>();
+                    int polygonStart = coordsStart + 3;
+                    int polygonEnd;
+                    do
+                    {
+                        polygonEnd = jsonStates.IndexOf("]]]");
+                        polygon.Add(ParsePolygon(jsonStates[polygonStart..polygonEnd]));
+                        jsonStates = jsonStates[(polygonEnd + 3)..];
+                        polygonStart = jsonStates.IndexOf("[[[") + 2;
+                    } while (jsonStates[0] != ']');
+                    coordsEnd = polygonEnd;
+                    namedCoordinates.Add(stateName, polygon.ToArray());
                 }
-                catch (JsonReaderException)
+                else // if state consists of one polygon
                 {
-                    // if state consists of multiple polygons, thus json array has additional dimension
-                    coordinates.Add(pair.Key, pair.Value.ToObject<double[][][][]>());
-                }
+                    coordsEnd = jsonStates.IndexOf("]]]");
+                    namedCoordinates.Add(stateName, new Coordinates[1][]
+                        { ParsePolygon(jsonStates[(coordsStart + 2)..coordsEnd]) });
+                    jsonStates = jsonStates[(coordsEnd + 3)..];
+                }          
+                nameStart = jsonStates.IndexOf('\"');
             }
-            return coordinates;
+            return namedCoordinates;
         }
 
         public static Dictionary<string, Coordinates> GetStatesCenters()
@@ -66,7 +80,7 @@ namespace TwitterTrends.Services
             return statesCenters;
         }
 
-        public static Coordinates FindStateCenter(double[][][][] state)
+        public static Coordinates FindStateCenter(Coordinates[][] state)
         {
             var centers = new WeightedCenter[state.Length];
             for (int i = 0; i < state.Length; i++)
@@ -82,36 +96,42 @@ namespace TwitterTrends.Services
             return stateCenter;
         }
 
-        private static WeightedCenter FindPolygonCenter(double[][][] polygon)
+        private static WeightedCenter FindPolygonCenter(Coordinates[] polygon)
         {
             var center = new WeightedCenter();
             var area = FindPolygonArea(polygon);
             if (area == 0)
             {
-                polygon[0][0][0] += 0.0000001;
-                polygon[0][0][1] += 0.0000001;
+                polygon[0].Lon += 0.0000001;
+                polygon[0].Lat += 0.0000001;
                 area = FindPolygonArea(polygon);
             }
-            for (int i = 0; i < polygon[0].Length - 1; i++)
+            for (int i = 0; i < polygon.Length - 1; i++)
             {
-                center.Center.Lat += (polygon[0][i][1] + polygon[0][i + 1][1]) * 
-                    (polygon[0][i][1] * polygon[0][i + 1][0] - polygon[0][i + 1][1] * polygon[0][i][0]);
-                center.Center.Lon += (polygon[0][i][0] + polygon[0][i + 1][0]) *
-                    (polygon[0][i][1] * polygon[0][i + 1][0] - polygon[0][i + 1][1] * polygon[0][i][0]);
-            }          
+                center.Center.Lat += (polygon[i].Lat + polygon[i + 1].Lat) * 
+                    (polygon[i].Lat * polygon[i + 1].Lon - polygon[i + 1].Lat * polygon[i].Lon);
+                center.Center.Lon += (polygon[i].Lon + polygon[i + 1].Lon) *
+                    (polygon[i].Lat * polygon[i + 1].Lon - polygon[i + 1].Lat * polygon[i].Lon);
+            }
+            center.Center.Lat += (polygon[^1].Lat + polygon[0].Lat) *
+                    (polygon[^1].Lat * polygon[0].Lon - polygon[0].Lat * polygon[^1].Lon);
+            center.Center.Lon += (polygon[^1].Lon + polygon[0].Lon) *
+                (polygon[^1].Lat * polygon[0].Lon - polygon[0].Lat * polygon[^1].Lon);
+
             center.Center.Lat /= 6 * area;
             center.Center.Lon /= 6 * area;
             center.Area = area;
             return center;
         }
 
-        private static double FindPolygonArea(double[][][] polygon)
+        private static double FindPolygonArea(Coordinates[] polygon)
         {
             double area = 0;
-            for (int i = 0; i < polygon[0].Length - 1; i++)
+            for (int i = 0; i < polygon.Length - 1; i++)
             {
-                area += polygon[0][i][1] * polygon[0][i + 1][0] - polygon[0][i + 1][1] * polygon[0][i][0];
+                area += polygon[i].Lat * polygon[i + 1].Lon - polygon[i + 1].Lat * polygon[i].Lon;
             }
+            area += polygon[^1].Lat * polygon[0].Lon - polygon[0].Lat * polygon[^1].Lon;
             return area / 2;
         }
 
@@ -137,6 +157,17 @@ namespace TwitterTrends.Services
                 statesTweets[closestState].Add(tweet);
             }
             return statesTweets;
+        }
+
+        private static Coordinates[] ParsePolygon(string poly)
+        {
+            string[] splittedCoords = poly.Split("],");
+            var parsedCoords = new List<Coordinates>();
+            foreach (var coords in splittedCoords)
+            {
+                parsedCoords.Add(new Coordinates(coords + "]"));
+            }
+            return parsedCoords.ToArray();
         }
     }
 }

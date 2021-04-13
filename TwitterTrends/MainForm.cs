@@ -16,15 +16,33 @@ namespace TwitterTrends
         public MainForm()
         {
             InitializeComponent();
-            var coords = StateService.CalculateAverageSentiments();
-            var coords2 = StateService.CalculateAverageSentiments();
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
         {
-
             e.Graphics.Clear(Color.White);
-            e.Graphics.DrawPolygon(new Pen(Color.Black), Points);
+            var pen = new Pen(Color.Black)
+            {
+                Width = 3
+            };
+            var drawModels = MapService.GetStatesDrawModels(this.Size);
+            foreach (var stateDrawModel in drawModels)
+            {
+                foreach (var polygon in stateDrawModel.Polygons)
+                {
+                    e.Graphics.DrawPolygon(pen, polygon);
+                    e.Graphics.FillPolygon(new SolidBrush(stateDrawModel.Color), polygon);
+                }               
+            }
+            foreach (var stateDrawModel in drawModels)
+            {
+                e.Graphics.DrawString(
+                    stateDrawModel.Name,
+                    new Font(FontFamily.GenericSansSerif, 8),
+                    new SolidBrush(Color.Black),
+                    new PointF(stateDrawModel.InnerPoint.X - 10, stateDrawModel.InnerPoint.Y - 10)
+                );
+            }
         }
     }
 }
