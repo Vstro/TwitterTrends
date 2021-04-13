@@ -1,6 +1,6 @@
 ﻿using TwitterTrends.Entities;
 
-namespace TwitterTrends
+namespace TwitterTrends.Entities
 {
     public class Tweet
     {
