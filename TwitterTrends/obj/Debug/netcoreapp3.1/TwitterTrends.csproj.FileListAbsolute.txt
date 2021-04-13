@@ -4,13 +4,11 @@ C:\Users\user\source\repos\TwitterTrends\TwitterTrends\bin\Debug\netcoreapp3.1\T
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\bin\Debug\netcoreapp3.1\TwitterTrends.runtimeconfig.dev.json
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\bin\Debug\netcoreapp3.1\TwitterTrends.dll
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\bin\Debug\netcoreapp3.1\TwitterTrends.pdb
-C:\Users\user\source\repos\TwitterTrends\TwitterTrends\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.csprojAssemblyReference.cache
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.csproj.GenerateResource.cache
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.AssemblyInfoInputs.cache
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.AssemblyInfo.cs
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.csproj.CoreCompileInputs.cache
-C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.csproj.CopyComplete
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.dll
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.pdb
 C:\Users\user\source\repos\TwitterTrends\TwitterTrends\obj\Debug\netcoreapp3.1\TwitterTrends.genruntimeconfig.cache

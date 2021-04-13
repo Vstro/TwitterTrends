@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using System.Linq;
 using TwitterTrends.Entities;
 
@@ -45,12 +44,24 @@ namespace TwitterTrends.Services
             return statesDrawModels;
         }
 
-        public static Color GetSentimentColor(double? sentiment)
+        private static Color GetSentimentColor(double? sentiment)
         {
+            int diversity = 5;
             if (!sentiment.HasValue) return Color.Gray;
-            if (Math.Abs(sentiment.Value) <= 0.001) return Color.White;
-            if (sentiment.Value < 0) return Color.Blue;
-            return Color.Orange;
+            int greenShape;
+            if (Math.Abs(sentiment.Value) <= 0.004)
+            {
+                return Color.White;
+            }
+            if (sentiment.Value < 0)
+            {
+                greenShape = (int)(255 * (1 + diversity * sentiment.Value));
+                if (greenShape < 0) greenShape = 0;
+                return Color.FromArgb(0, greenShape, 255);
+            }
+            greenShape = (int)(255 * (1 - diversity * sentiment.Value));
+            if (greenShape < 0) greenShape = 0;
+            return Color.FromArgb(255, greenShape, 0);
         }
 
         private static void CalculateCanvasParams(Size canvasSize, Coordinates[] points)
@@ -66,7 +77,7 @@ namespace TwitterTrends.Services
 
         private static PointF ConvertToCanvasPoint(Coordinates coords)
         {
-            if (Scale == 0) return coords;
+            if (Scale == 0) return new PointF((float)coords.Lat, (float)coords.Lon);
             return new PointF
             {
                 X = (float)((coords.Lon - XOffset) * Scale),

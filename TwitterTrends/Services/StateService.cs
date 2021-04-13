@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using TwitterTrends.Entities;
 
 namespace TwitterTrends.Services
@@ -21,12 +19,10 @@ namespace TwitterTrends.Services
                 {
                     continue;
                 }
-                //int zeroCounter = 0;
                 stateFeelings[stateTweets.Key] = stateTweets.Value.Select(tw => {
                     if (tw.Feeling.HasValue) return tw.Feeling.Value;
-                    //zeroCounter++;
                     return 0;
-                }).Sum() / (stateTweets.Value.Count /*- zeroCounter*/);
+                }).Sum() / (stateTweets.Value.Count);
             }
             return stateFeelings;
         }
@@ -80,7 +76,7 @@ namespace TwitterTrends.Services
             return statesCenters;
         }
 
-        public static Coordinates FindStateCenter(Coordinates[][] state)
+        private static Coordinates FindStateCenter(Coordinates[][] state)
         {
             var centers = new WeightedCenter[state.Length];
             for (int i = 0; i < state.Length; i++)
@@ -165,7 +161,7 @@ namespace TwitterTrends.Services
             var parsedCoords = new List<Coordinates>();
             foreach (var coords in splittedCoords)
             {
-                parsedCoords.Add(new Coordinates(coords + "]"));
+                parsedCoords.Add(CoordinatesService.ParseCoordinates(coords + "]"));
             }
             return parsedCoords.ToArray();
         }
